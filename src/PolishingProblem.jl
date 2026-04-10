@@ -267,7 +267,7 @@ function setup_ocp_problem(grid::Grid2D, config::PolishingConfig)
         u₁(t)^2 + u₂(t)^2 ≤ 1
         
         # Time bounds (important for convergence!)
-        5 ≤ tf ≤ 30
+        5 ≤ tf ≤ 50
         
         # Dynamics
         ẋ(t) == state_dynamics(s₁(t), s₂(t), u₁(t), u₂(t), grid, config)

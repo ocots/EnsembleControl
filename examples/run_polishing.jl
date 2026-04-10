@@ -29,7 +29,7 @@ mkpath("results")
 profile = get_profile("flat_with_defect")  # Nearly flat with small defect → perfectly flat
 
 config = PolishingConfig(
-    grid_size = (5, 5),
+    grid_size = (10, 10),
     domain = (-1.0, 1.0),
     nozzle_amplitude = 0.1,
     nozzle_sigma_x = 0.05,
