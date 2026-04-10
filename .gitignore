@@ -1,0 +1,60 @@
+# Julia gitignore template
+# https://github.com/github/gitignore/blob/main/Julia.gitignore
+
+# Results (generated files)
+results/
+
+# Packages
+*.jl.tar.gz
+*.jl.tar
+
+# Documentation
+docs/build/
+docs/site/
+
+# Manifest and Project files
+Manifest.toml
+Project.toml
+
+# Jupyter notebooks
+*.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Julia artifacts
+Artifacts.toml
+LocalPreferences.toml
+
+# Test artifacts
+*.cov
+*.prof
+*.mem
+
+# Benchmark artifacts
+*.bench
+
+# Coverage
+lcov.info
+.coverage
+
+# Deprecations
+*.deprecations
+
+# Temporary files
+*.tmp
+*.temp
