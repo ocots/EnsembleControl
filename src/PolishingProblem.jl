@@ -33,8 +33,8 @@ Configuration parameters for the polishing problem.
 - `nozzle_sigma_x::Float64`: Nozzle width in x direction
 - `nozzle_sigma_y::Float64`: Nozzle width in y direction
 - `initial_position::Vector{Float64}`: Initial nozzle position
-- `time_final::Float64`: Final time for reference trajectory
-- `reference_velocity::Vector{Float64}`: Reference control velocity
+- `initial_surface::Function`: Initial surface function (x, y) -> height
+- `target_surface::Function`: Target surface function (x, y) -> height
 """
 struct PolishingConfig
     grid_size::Tuple{Int,Int}
@@ -43,21 +43,21 @@ struct PolishingConfig
     nozzle_sigma_x::Float64
     nozzle_sigma_y::Float64
     initial_position::Vector{Float64}
-    time_final::Float64
-    reference_velocity::Vector{Float64}
+    initial_surface::Function
+    target_surface::Function
     
     function PolishingConfig(;
-        grid_size = (5, 5),
+        grid_size = (10, 10),
         domain = (-1.0, 1.0),
         nozzle_amplitude = 0.1,
         nozzle_sigma_x = 0.05,
         nozzle_sigma_y = 0.01,
         initial_position = [-1.0, 0.0],
-        time_final = 15.0,
-        reference_velocity = [0.1, 0.0]
+        initial_surface = (x, y) -> exp(-((x - 0)^2 / (2 * 1) + (y - 0)^2 / (2 * 1))),
+        target_surface = (x, y) -> 0.0
     )
         new(grid_size, domain, nozzle_amplitude, nozzle_sigma_x, 
-            nozzle_sigma_y, initial_position, time_final, reference_velocity)
+            nozzle_sigma_y, initial_position, initial_surface, target_surface)
     end
 end
 
@@ -144,20 +144,8 @@ function polishing_function(x, y, sx, sy, config::PolishingConfig)
     return -A * exp(-((x - sx)^2 / (2 * σx) + (y - sy)^2 / (2 * σy)))
 end
 
-"""
-    initial_surface(x, y) -> Float64
-
-Define the initial surface height at point (x,y).
-
-# Arguments
-- `x, y`: Point coordinates
-
-# Returns
-- `Float64`: Initial surface height
-"""
-function initial_surface(x, y)
-    return exp(-((x - 0)^2 / (2 * 1) + (y - 0)^2 / (2 * 1)))
-end
+# Note: initial_surface and target_surface are now part of PolishingConfig
+# This allows for flexible surface profiles without modifying the core code
 
 """
     state_dynamics(sx, sy, u1, u2, grid::Grid2D, config::PolishingConfig) -> Vector
@@ -249,20 +237,10 @@ Set up the optimal control problem for surface polishing.
 function setup_ocp_problem(grid::Grid2D, config::PolishingConfig)
     nb_pts = size(grid)
     
-    # Reference trajectory for target surface
-    u_ref(t) = config.reference_velocity
-    tf_ref = config.time_final
-    s0 = config.initial_position
-    
-    # Compute target final surface
-    final_surface(x, y) = begin
-        X0 = [s0[1], s0[2], initial_surface(x, y)]
-        compute_surface_evolution(tf_ref, x, y, u_ref, X0, config)[3]
-    end
-    
     # Initial and final height conditions on grid
-    h0 = [initial_surface(grid[1, i], grid[2, i]) for i ∈ 1:nb_pts]
-    hf = [final_surface(grid[1, i], grid[2, i]) for i ∈ 1:nb_pts]
+    s0 = config.initial_position
+    h0 = [config.initial_surface(grid[1, i], grid[2, i]) for i ∈ 1:nb_pts]
+    hf = [config.target_surface(grid[1, i], grid[2, i]) for i ∈ 1:nb_pts]
     
     h(x) = x[3:end]
 

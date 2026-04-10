@@ -50,26 +50,17 @@ function plot_surfaces(config::PolishingConfig; resolution=100)
     x_range, y_range = create_visualization_grid(config.domain, resolution)
     
     # Initial surface
-    z_initial = @. initial_surface(x_range', y_range)
+    z_initial = @. config.initial_surface(x_range', y_range)
     p1 = contourf(x_range, y_range, z_initial, 
                   title="Initial surface",
                   xlabel="x", ylabel="y",
                   color=:viridis,
                   levels=20)
     
-    # Target final surface (using reference trajectory)
-    u_ref(t) = config.reference_velocity
-    tf_ref = config.time_final
-    s0 = config.initial_position
-    
-    surf_final(x, y) = begin
-        X0 = [s0[1], s0[2], initial_surface(x, y)]
-        compute_surface_evolution(tf_ref, x, y, u_ref, X0, config)[3]
-    end
-    
-    z_final = @. surf_final(x_range', y_range)
+    # Target surface from config
+    z_final = @. config.target_surface(x_range', y_range)
     p2 = contourf(x_range, y_range, z_final,
-                  title="Target final surface",
+                  title="Target surface",
                   xlabel="x", ylabel="y",
                   color=:viridis,
                   levels=20)
@@ -160,14 +151,14 @@ Plot the final achieved surface with the optimal trajectory.
 # Returns
 - Plot object
 """
-function plot_final_result(sol, grid::Grid2D, config::PolishingConfig; resolution=50)
+function plot_final_result(sol, grid::Grid2D, config::PolishingConfig; resolution=100)
     x_state = state(sol)
     t_grid = time_grid(sol)
     tf_sol = t_grid[end]
     
     # Compute final surface
     function surf_achieved(t, x, y, state_func)
-        s0_val = initial_surface(x, y)
+        s0_val = config.initial_surface(x, y)
         ϕ = Flow((τ, s) -> polishing_function(x, y, state_func(τ)[1], state_func(τ)[2], config); 
                  autonomous=false)
         return ϕ(0, s0_val, t)
@@ -208,7 +199,7 @@ Plot initial surface with grid points overlay.
 """
 function plot_grid_with_surface(grid::Grid2D, config::PolishingConfig; resolution=100)
     x_range, y_range = create_visualization_grid(config.domain, resolution)
-    z = @. initial_surface(x_range', y_range)
+    z = @. config.initial_surface(x_range', y_range)
     
     p = contour(x_range, y_range, z,
                 title="Initial surface with grid",
@@ -235,26 +226,17 @@ function plot_surfaces_3d(config::PolishingConfig; resolution=50)
     x_range, y_range = create_visualization_grid(config.domain, resolution)
     
     # Initial surface
-    z_initial = @. initial_surface(x_range', y_range)
+    z_initial = @. config.initial_surface(x_range', y_range)
     p1 = surface(x_range, y_range, z_initial,
                  title="Initial surface (3D)",
                  xlabel="x", ylabel="y", zlabel="height",
                  color=:viridis,
                  camera=(30, 60))
     
-    # Target final surface
-    u_ref(t) = config.reference_velocity
-    tf_ref = config.time_final
-    s0 = config.initial_position
-    
-    surf_final(x, y) = begin
-        X0 = [s0[1], s0[2], initial_surface(x, y)]
-        compute_surface_evolution(tf_ref, x, y, u_ref, X0, config)[3]
-    end
-    
-    z_final = @. surf_final(x_range', y_range)
+    # Target surface
+    z_final = @. config.target_surface(x_range', y_range)
     p2 = surface(x_range, y_range, z_final,
-                 title="Target final surface (3D)",
+                 title="Target surface (3D)",
                  xlabel="x", ylabel="y", zlabel="height",
                  color=:viridis,
                  camera=(30, 60))
@@ -283,7 +265,7 @@ function plot_final_result_3d(sol, grid::Grid2D, config::PolishingConfig; resolu
     
     # Compute final surface
     function surf_achieved(t, x, y, state_func)
-        s0_val = initial_surface(x, y)
+        s0_val = config.initial_surface(x, y)
         ϕ = Flow((τ, s) -> polishing_function(x, y, state_func(τ)[1], state_func(τ)[2], config); 
                  autonomous=false)
         return ϕ(0, s0_val, t)

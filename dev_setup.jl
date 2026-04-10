@@ -21,9 +21,11 @@ end
 using Revise
 
 # Load modules with Revise tracking
+includet(joinpath(@__DIR__, "src", "SurfaceProfiles.jl"))
 includet(joinpath(@__DIR__, "src", "PolishingProblem.jl"))
 includet(joinpath(@__DIR__, "src", "PolishingVisualization.jl"))
 
+using .SurfaceProfiles
 using .PolishingProblem
 using .PolishingVisualization
 
@@ -34,7 +36,9 @@ using NLPModelsIpopt
 using OrdinaryDiffEq
 
 println("✓ Development environment loaded with Revise")
-println("✓ Modules: PolishingProblem, PolishingVisualization")
+println("✓ Modules: SurfaceProfiles, PolishingProblem, PolishingVisualization")
 println("✓ You can now modify source files and changes will auto-reload")
+println("\nTo list available surface profiles:")
+println("  julia> SurfaceProfiles.list_profiles()")
 println("\nTo run the example:")
 println("  julia> include(\"examples/run_polishing.jl\")")
